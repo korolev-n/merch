@@ -4,17 +4,16 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/gin-gonic/gin"
 	"github.com/korolev-n/merch-auth/internal/config"
-	"github.com/korolev-n/merch-auth/internal/repository"
-	"github.com/korolev-n/merch-auth/internal/service"
-	transport "github.com/korolev-n/merch-auth/internal/transport/http"
+	"github.com/korolev-n/merch-auth/internal/server"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-
-	cfg := config.NewConfig()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	db, err := openDB(cfg)
 	if err != nil {
@@ -22,20 +21,8 @@ func main() {
 	}
 	defer db.Close()
 
-	// userRepo := mocks.NewMockUserRepository()
-	// walletRepo := mocks.NewMockWalletRepository()
-
-	userRepo := repository.NewUserRepository(db)
-	walletRepo := repository.NewWalletRepository(db)
-	regService := service.NewRegistrationService(userRepo, walletRepo)
-	handler := &transport.Handler{Reg: regService}
-
-	r := gin.Default()
-	r.POST("/api/auth", handler.Register)
-
-	if err := r.Run(); err != nil {
-		log.Fatalf("could not start server: %v", err)
-	}
+	srv := server.New(db)
+	srv.Run()
 }
 
 func openDB(cfg *config.Config) (*sql.DB, error) {
@@ -43,6 +30,8 @@ func openDB(cfg *config.Config) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
 	return db, nil
 }

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -11,7 +12,7 @@ type Config struct {
 	DBdsn string
 }
 
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("No .env file found")
@@ -19,9 +20,10 @@ func NewConfig() *Config {
 
 	dsn := os.Getenv("MERCH_DB_DSN")
 	if dsn == "" {
-		log.Fatal("environment variable MERCH_DB_DSN is not set")
+		return nil, fmt.Errorf("MERCH_DB_DSN is not set")
 	}
+
 	return &Config{
 		DBdsn: dsn,
-	}
+	}, nil
 }
