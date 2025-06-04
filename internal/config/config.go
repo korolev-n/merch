@@ -19,7 +19,7 @@ func NewConfig() *Config {
 
 	dsn := os.Getenv("MERCH_DB_DSN")
 	if dsn == "" {
-		log.Println("environment variable MERCH_DB_DSN is not set") // заменить на Fatal()
+		log.Fatal("environment variable MERCH_DB_DSN is not set")
 	}
 	return &Config{
 		DBdsn: dsn,
