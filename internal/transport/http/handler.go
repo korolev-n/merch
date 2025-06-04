@@ -28,5 +28,5 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(201, response.AuthResponse{Token: ""})
+	c.JSON(200, response.AuthResponse{Token: ""})
 }
