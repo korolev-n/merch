@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/korolev-n/merch-auth/internal/config"
-	"github.com/korolev-n/merch-auth/internal/repository/mocks"
+	"github.com/korolev-n/merch-auth/internal/repository"
 	"github.com/korolev-n/merch-auth/internal/service"
 	transport "github.com/korolev-n/merch-auth/internal/transport/http"
 	_ "github.com/lib/pq"
@@ -22,11 +22,11 @@ func main() {
 	}
 	defer db.Close()
 
-	// userRepo := repository.NewUserRepository(db)
-	// walletRepo := repository.NewWalletRepository(db)
+	// userRepo := mocks.NewMockUserRepository()
+	// walletRepo := mocks.NewMockWalletRepository()
 
-	userRepo := mocks.NewMockUserRepository()
-	walletRepo := mocks.NewMockWalletRepository()
+	userRepo := repository.NewUserRepository(db)
+	walletRepo := repository.NewWalletRepository(db)
 	regService := service.NewRegistrationService(userRepo, walletRepo)
 	handler := &transport.Handler{Reg: regService}
 
