@@ -8,6 +8,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Registration interface {
+	RegisterUser(ctx context.Context, username, password string) (string, error)
+}
+
 type RegistrationService struct {
 	Users   repository.UserRepository
 	Wallets repository.WalletRepository

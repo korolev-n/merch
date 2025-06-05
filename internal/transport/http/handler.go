@@ -11,7 +11,7 @@ import (
 )
 
 type Handler struct {
-	Reg *service.RegistrationService
+	Reg service.Registration
 }
 
 type RegisterRequest struct {
