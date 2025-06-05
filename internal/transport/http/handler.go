@@ -28,10 +28,11 @@ func (h *Handler) Register(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	if err := h.Reg.RegisterUser(ctx, req.Username, req.Password); err != nil {
+	token, err := h.Reg.RegisterUser(ctx, req.Username, req.Password)
+	if err != nil {
 		helper.JSONError(c, http.StatusInternalServerError, "could not register")
 		return
 	}
 
-	c.JSON(200, response.AuthResponse{Token: ""})
+	c.JSON(200, response.AuthResponse{Token: token})
 }

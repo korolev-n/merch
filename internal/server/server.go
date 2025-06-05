@@ -8,6 +8,7 @@ import (
 	"github.com/korolev-n/merch-auth/internal/repository"
 	"github.com/korolev-n/merch-auth/internal/service"
 	transport "github.com/korolev-n/merch-auth/internal/transport/http"
+	"github.com/korolev-n/merch-auth/internal/transport/http/middleware"
 )
 
 type Server struct {
@@ -19,14 +20,23 @@ func New(db *sql.DB) *Server {
 
 	// userRepo := mocks.NewMockUserRepository()
 	// walletRepo := mocks.NewMockWalletRepository()
-	
+
 	userRepo := repository.NewUserRepository(db)
 	walletRepo := repository.NewWalletRepository(db)
-	regService := service.NewRegistrationService(userRepo, walletRepo)
+	jwtService := service.NewJWTService()
+	regService := service.NewRegistrationService(userRepo, walletRepo, jwtService)
 	handler := &transport.Handler{Reg: regService}
 
 	router := gin.Default()
 	router.POST("/api/auth", handler.Register)
+
+	protected := router.Group("/api")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		protected.GET("/me", func(c *gin.Context) {
+			c.JSON(200, gin.H{"message": "authenticated user"})
+		})
+	}
 
 	return &Server{
 		db:     db,
