@@ -26,7 +26,9 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	if err := h.Reg.RegisterUser(); err != nil {
+	ctx := c.Request.Context()
+
+	if err := h.Reg.RegisterUser(ctx, req.Username, req.Password); err != nil {
 		helper.JSONError(c, http.StatusInternalServerError, "could not register")
 		return
 	}

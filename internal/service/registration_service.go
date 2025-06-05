@@ -1,6 +1,9 @@
 package service
 
 import (
+	"context"
+
+	"github.com/korolev-n/merch-auth/internal/domain"
 	"github.com/korolev-n/merch-auth/internal/repository"
 )
 
@@ -16,12 +19,31 @@ func NewRegistrationService(users repository.UserRepository, wallets repository.
 	}
 }
 
-func (s *RegistrationService) RegisterUser() error {
-	// if err := s.Users.Create(); err != nil {
-	// 	return err
-	// }
-	// if err := s.Wallets.Create(); err != nil {
-	// 	return err
-	// }
-	return nil
+func (s *RegistrationService) RegisterUser(ctx context.Context, username, password string) error {
+	user, err := s.Users.GetByUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
+	if user != nil {
+		// пользователь уже существует
+		return nil
+	}
+
+	newUser := &domain.User{
+		Username: username,
+		Password: password, // хешировать перед сохранением
+	}
+
+	userID, err := s.Users.Create(ctx, newUser)
+	if err != nil {
+		return err
+	}
+
+	wallet := &domain.Wallet{
+		UserID:  userID,
+		Balance: 1000,
+	}
+
+	return s.Wallets.Create(ctx, wallet)
 }
