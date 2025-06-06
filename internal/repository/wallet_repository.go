@@ -7,6 +7,10 @@ import (
 	"github.com/korolev-n/merch-auth/internal/domain"
 )
 
+type WalletRepository interface {
+	Create(ctx context.Context, wallet *domain.Wallet) error
+}
+
 type walletRepo struct {
 	db *sql.DB
 }
