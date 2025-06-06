@@ -15,10 +15,10 @@ type Registration interface {
 type RegistrationService struct {
 	Users   repository.UserRepository
 	Wallets repository.WalletRepository
-	JWT     *JWTService
+	JWT     TokenGenerator
 }
 
-func NewRegistrationService(users repository.UserRepository, wallets repository.WalletRepository, jwt *JWTService) *RegistrationService {
+func NewRegistrationService(users repository.UserRepository, wallets repository.WalletRepository, jwt TokenGenerator) *RegistrationService {
 	return &RegistrationService{
 		Users:   users,
 		Wallets: wallets,

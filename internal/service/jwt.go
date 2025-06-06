@@ -7,11 +7,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type TokenGenerator interface {
+	GenerateToken(userID int, username string) (string, error)
+}
+
 type JWTService struct {
 	secretKey string
 }
 
-func NewJWTService() *JWTService {
+func NewJWTService() TokenGenerator {
 	return &JWTService{
 		secretKey: os.Getenv("JWT_SECRET"),
 	}
