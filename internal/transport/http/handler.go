@@ -30,7 +30,16 @@ func (h *Handler) Register(c *gin.Context) {
 
 	token, err := h.Reg.RegisterUser(ctx, req.Username, req.Password)
 	if err != nil {
-		helper.JSONError(c, http.StatusInternalServerError, "could not register")
+		switch err {
+		case service.ErrIncorrectPassword:
+			helper.JSONError(c, http.StatusUnauthorized, "incorrect password")
+		case service.ErrUserAlreadyExists:
+			helper.JSONError(c, http.StatusConflict, "user already exists")
+		case service.ErrTokenGeneration:
+			helper.JSONError(c, http.StatusInternalServerError, "token generation failed")
+		default:
+			helper.JSONError(c, http.StatusInternalServerError, "could not register")
+		}
 		return
 	}
 

@@ -35,7 +35,7 @@ func (s *RegistrationService) RegisterUser(ctx context.Context, username, passwo
 	if user != nil {
 		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
-			return "", err // td добавить возврат корректной ошибки, сейчас "could not register", надо "неправильный пароль"
+			return "", ErrIncorrectPassword
 		}
 		return s.JWT.GenerateToken(user.ID, user.Username)
 	}
@@ -52,7 +52,7 @@ func (s *RegistrationService) RegisterUser(ctx context.Context, username, passwo
 
 	userID, err := s.Users.Create(ctx, newUser)
 	if err != nil {
-		return "", err
+		return "", ErrUserAlreadyExists
 	}
 
 	wallet := &domain.Wallet{

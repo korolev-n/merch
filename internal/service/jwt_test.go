@@ -9,7 +9,6 @@ import (
 )
 
 func TestJWTService_GenerateToken(t *testing.T) {
-	// Arrange: установить переменную окружения для секрета
 	secret := "test_secret_key"
 	os.Setenv("JWT_SECRET", secret)
 
