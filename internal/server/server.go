@@ -2,9 +2,10 @@ package server
 
 import (
 	"database/sql"
-	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/korolev-n/merch-auth/internal/logger"
 	"github.com/korolev-n/merch-auth/internal/repository"
 	"github.com/korolev-n/merch-auth/internal/service"
 	transport "github.com/korolev-n/merch-auth/internal/transport/http"
@@ -45,8 +46,9 @@ func New(db *sql.DB) *Server {
 }
 
 func (s *Server) Run() {
-	log.Println("Starting server on :8080")
+	logger.Log.Info("Starting server", "addr", ":8080")
 	if err := s.router.Run(":8080"); err != nil {
-		log.Fatalf("could not start server: %v", err)
+		logger.Log.Error("could not start server", "error", err)
+		os.Exit(1)
 	}
 }

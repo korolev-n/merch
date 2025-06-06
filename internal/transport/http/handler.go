@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/korolev-n/merch-auth/internal/logger"
 	"github.com/korolev-n/merch-auth/internal/service"
 	"github.com/korolev-n/merch-auth/internal/transport/http/helper"
 	"github.com/korolev-n/merch-auth/internal/transport/http/request"
@@ -22,6 +23,7 @@ type RegisterRequest struct {
 func (h *Handler) Register(c *gin.Context) {
 	var req request.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Log.Warn("Invalid input in register", "error", err)
 		helper.JSONError(c, http.StatusBadRequest, "invalid input")
 		return
 	}
@@ -30,6 +32,8 @@ func (h *Handler) Register(c *gin.Context) {
 
 	token, err := h.Reg.RegisterUser(ctx, req.Username, req.Password)
 	if err != nil {
+		logger.Log.Warn("Registration failed", "username", req.Username, "error", err)
+		
 		switch err {
 		case service.ErrIncorrectPassword:
 			helper.JSONError(c, http.StatusUnauthorized, "incorrect password")

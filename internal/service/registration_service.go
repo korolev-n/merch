@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/korolev-n/merch-auth/internal/domain"
+	"github.com/korolev-n/merch-auth/internal/logger"
 	"github.com/korolev-n/merch-auth/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -29,12 +30,14 @@ func NewRegistrationService(users repository.UserRepository, wallets repository.
 func (s *RegistrationService) RegisterUser(ctx context.Context, username, password string) (string, error) {
 	user, err := s.Users.GetByUsername(ctx, username)
 	if err != nil {
+		logger.Log.Error("error getting user by username", "error", err, "username", username)
 		return "", err
 	}
 
 	if user != nil {
 		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
+			logger.Log.Warn("Incorrect password attempt", "username", username)
 			return "", ErrIncorrectPassword
 		}
 		return s.JWT.GenerateToken(user.ID, user.Username)
@@ -42,6 +45,7 @@ func (s *RegistrationService) RegisterUser(ctx context.Context, username, passwo
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
+		logger.Log.Error("password hashing failed", "error", err)
 		return "", err
 	}
 
@@ -52,6 +56,7 @@ func (s *RegistrationService) RegisterUser(ctx context.Context, username, passwo
 
 	userID, err := s.Users.Create(ctx, newUser)
 	if err != nil {
+		logger.Log.Warn("User creation failed", "username", username, "error", err)
 		return "", ErrUserAlreadyExists
 	}
 
@@ -61,6 +66,7 @@ func (s *RegistrationService) RegisterUser(ctx context.Context, username, passwo
 	}
 
 	if err := s.Wallets.Create(ctx, wallet); err != nil {
+		logger.Log.Error("Wallet creation failed", "userID", userID, "error", err)
 		return "", err
 	}
 

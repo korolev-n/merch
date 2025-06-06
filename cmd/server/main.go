@@ -2,22 +2,27 @@ package main
 
 import (
 	"database/sql"
-	"log"
+	"os"
 
 	"github.com/korolev-n/merch-auth/internal/config"
+	"github.com/korolev-n/merch-auth/internal/logger"
 	"github.com/korolev-n/merch-auth/internal/server"
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	logger.Init()
+
 	cfg, err := config.NewConfig()
 	if err != nil {
-		log.Fatal(err)
+		logger.Log.Error("failed to load config", "error", err)
+		os.Exit(1)
 	}
 
 	db, err := openDB(cfg)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log.Error("failed to open DB", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
