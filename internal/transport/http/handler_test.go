@@ -11,12 +11,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/korolev-n/merch-auth/internal/logger"
+	"github.com/korolev-n/merch-auth/internal/service"
 	myhttp "github.com/korolev-n/merch-auth/internal/transport/http"
+	"github.com/korolev-n/merch-auth/internal/transport/http/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// Мок RegistrationService
+// Реализует интерфейс Registration
 type mockRegistrationService struct {
 	RegisterUserFunc func(ctx context.Context, username, password string) (string, error)
 }
@@ -25,83 +27,104 @@ func (m *mockRegistrationService) RegisterUser(ctx context.Context, username, pa
 	return m.RegisterUserFunc(ctx, username, password)
 }
 
-func TestHandler_Register_Success(t *testing.T) {
-	logger.Init()
-	gin.SetMode(gin.TestMode)
+// helper создает handler и роутер
+func setupHandler(service service.Registration) *gin.Engine {
+	handler := &myhttp.Handler{Reg: service}
+	router := gin.Default()
+	router.POST("/api/auth", handler.Register)
+	return router
+}
 
-	mockService := &mockRegistrationService{
-		RegisterUserFunc: func(ctx context.Context, username, password string) (string, error) {
-			return "mocked.jwt.token", nil
+func TestHandler_Register(t *testing.T) {
+	logger.Init()
+
+	tests := []struct {
+		name           string
+		body           any
+		mockService    service.Registration
+		expectedCode   int
+		expectedSubstr string
+	}{
+		{
+			name: "valid request returns token",
+			body: request.AuthRequest{Username: "user", Password: "pass"},
+			mockService: &mockRegistrationService{
+				RegisterUserFunc: func(ctx context.Context, username, password string) (string, error) {
+					return "token.jwt.mock", nil
+				},
+			},
+			expectedCode:   http.StatusOK,
+			expectedSubstr: "token.jwt.mock",
+		},
+		{
+			name: "invalid JSON returns 400",
+			body: `{invalid json}`, // строка, не структура
+			mockService: &mockRegistrationService{
+				RegisterUserFunc: func(ctx context.Context, username, password string) (string, error) {
+					return "", nil
+				},
+			},
+			expectedCode:   http.StatusBadRequest,
+			expectedSubstr: "invalid input",
+		},
+		{
+			name: "internal error returns 500",
+			body: request.AuthRequest{Username: "user", Password: "pass"},
+			mockService: &mockRegistrationService{
+				RegisterUserFunc: func(ctx context.Context, username, password string) (string, error) {
+					return "", errors.New("db failure")
+				},
+			},
+			expectedCode:   http.StatusInternalServerError,
+			expectedSubstr: "could not register",
+		},
+		{
+			name: "incorrect password returns 401",
+			body: request.AuthRequest{Username: "user", Password: "wrongpass"},
+			mockService: &mockRegistrationService{
+				RegisterUserFunc: func(ctx context.Context, username, password string) (string, error) {
+					return "", service.ErrIncorrectPassword
+				},
+			},
+			expectedCode:   http.StatusUnauthorized,
+			expectedSubstr: "incorrect password",
+		},
+		{
+			name: "user exists returns 409",
+			body: request.AuthRequest{Username: "user", Password: "pass"},
+			mockService: &mockRegistrationService{
+				RegisterUserFunc: func(ctx context.Context, username, password string) (string, error) {
+					return "", service.ErrUserAlreadyExists
+				},
+			},
+			expectedCode:   http.StatusConflict,
+			expectedSubstr: "user already exists",
 		},
 	}
 
-	handler := &myhttp.Handler{Reg: mockService}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			router := setupHandler(tt.mockService)
 
-	router := gin.Default()
-	router.POST("/api/auth", handler.Register)
+			var reqBody *bytes.Buffer
+			switch b := tt.body.(type) {
+			case string:
+				reqBody = bytes.NewBufferString(b)
+			default:
+				j, err := json.Marshal(b)
+				require.NoError(t, err)
+				reqBody = bytes.NewBuffer(j)
+			}
 
-	body := map[string]string{
-		"username": "testuser",
-		"password": "testpass",
+			req, err := http.NewRequest(http.MethodPost, "/api/auth", reqBody)
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "application/json")
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedCode, w.Code)
+			assert.Contains(t, w.Body.String(), tt.expectedSubstr)
+		})
 	}
-	jsonBody, err := json.Marshal(body)
-	require.NoError(t, err)
-
-	req, _ := http.NewRequest(http.MethodPost, "/api/auth", bytes.NewBuffer(jsonBody))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	router.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "mocked.jwt.token")
-}
-
-func TestHandler_Register_InvalidInput(t *testing.T) {
-	logger.Init()
-	gin.SetMode(gin.TestMode)
-
-	handler := &myhttp.Handler{Reg: &mockRegistrationService{}}
-	router := gin.Default()
-	router.POST("/api/auth", handler.Register)
-
-	req, _ := http.NewRequest(http.MethodPost, "/api/auth", bytes.NewBufferString(`{invalid json}`))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	router.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.Contains(t, w.Body.String(), "invalid input")
-}
-
-func TestHandler_Register_ServiceError(t *testing.T) {
-	logger.Init()
-	gin.SetMode(gin.TestMode)
-
-	mockService := &mockRegistrationService{
-		RegisterUserFunc: func(ctx context.Context, username, password string) (string, error) {
-			return "", errors.New("db error")
-		},
-	}
-
-	handler := &myhttp.Handler{Reg: mockService}
-	router := gin.Default()
-	router.POST("/api/auth", handler.Register)
-
-	body := map[string]string{
-		"username": "user",
-		"password": "pass",
-	}
-	jsonBody, err := json.Marshal(body)
-	require.NoError(t, err)
-	
-	req, _ := http.NewRequest(http.MethodPost, "/api/auth", bytes.NewBuffer(jsonBody))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	router.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
-	assert.Contains(t, w.Body.String(), "could not register")
 }
