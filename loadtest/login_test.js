@@ -9,8 +9,8 @@ export const options = {
       rate: 100, // надо 1000 RPS
       timeUnit: '1s',
       duration: '10s',
-      preAllocatedVUs: 1000,
-      maxVUs: 2000,
+      preAllocatedVUs: 100, // надо 1000 при 1000 пользователей 
+      maxVUs: 200, // надо 2000 при 1000 пользователей 
     },
   },
   thresholds: {
