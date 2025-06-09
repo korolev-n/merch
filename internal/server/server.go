@@ -32,10 +32,10 @@ func New(db *sql.DB) *Server {
 	router.POST("/api/auth", handler.Register)
 
 	protected := router.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(jwtService))
 	{
 		protected.GET("/me", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "authenticated user"})
+			c.JSON(200, gin.H{"message": "hello, authenticated user"})
 		})
 	}
 
