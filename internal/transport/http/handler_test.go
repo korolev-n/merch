@@ -1,4 +1,4 @@
-package http
+package http_test
 
 import (
 	"bytes"
@@ -10,7 +10,10 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/korolev-n/merch-auth/internal/logger"
+	myhttp "github.com/korolev-n/merch-auth/internal/transport/http"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Мок RegistrationService
@@ -23,6 +26,7 @@ func (m *mockRegistrationService) RegisterUser(ctx context.Context, username, pa
 }
 
 func TestHandler_Register_Success(t *testing.T) {
+	logger.Init()
 	gin.SetMode(gin.TestMode)
 
 	mockService := &mockRegistrationService{
@@ -31,7 +35,7 @@ func TestHandler_Register_Success(t *testing.T) {
 		},
 	}
 
-	handler := &Handler{Reg: mockService}
+	handler := &myhttp.Handler{Reg: mockService}
 
 	router := gin.Default()
 	router.POST("/api/auth", handler.Register)
@@ -40,7 +44,9 @@ func TestHandler_Register_Success(t *testing.T) {
 		"username": "testuser",
 		"password": "testpass",
 	}
-	jsonBody, _ := json.Marshal(body)
+	jsonBody, err := json.Marshal(body)
+	require.NoError(t, err)
+
 	req, _ := http.NewRequest(http.MethodPost, "/api/auth", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -52,9 +58,10 @@ func TestHandler_Register_Success(t *testing.T) {
 }
 
 func TestHandler_Register_InvalidInput(t *testing.T) {
+	logger.Init()
 	gin.SetMode(gin.TestMode)
 
-	handler := &Handler{Reg: &mockRegistrationService{}}
+	handler := &myhttp.Handler{Reg: &mockRegistrationService{}}
 	router := gin.Default()
 	router.POST("/api/auth", handler.Register)
 
@@ -69,6 +76,7 @@ func TestHandler_Register_InvalidInput(t *testing.T) {
 }
 
 func TestHandler_Register_ServiceError(t *testing.T) {
+	logger.Init()
 	gin.SetMode(gin.TestMode)
 
 	mockService := &mockRegistrationService{
@@ -77,7 +85,7 @@ func TestHandler_Register_ServiceError(t *testing.T) {
 		},
 	}
 
-	handler := &Handler{Reg: mockService}
+	handler := &myhttp.Handler{Reg: mockService}
 	router := gin.Default()
 	router.POST("/api/auth", handler.Register)
 
@@ -85,7 +93,9 @@ func TestHandler_Register_ServiceError(t *testing.T) {
 		"username": "user",
 		"password": "pass",
 	}
-	jsonBody, _ := json.Marshal(body)
+	jsonBody, err := json.Marshal(body)
+	require.NoError(t, err)
+	
 	req, _ := http.NewRequest(http.MethodPost, "/api/auth", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
