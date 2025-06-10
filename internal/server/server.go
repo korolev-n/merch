@@ -26,7 +26,11 @@ func New(db *sql.DB) *Server {
 	walletRepo := repository.NewWalletRepository(db)
 	jwtService := service.NewJWTService()
 	regService := service.NewRegistrationService(userRepo, walletRepo, jwtService)
-	handler := &transport.Handler{Reg: regService}
+	transferService := service.NewTransferService(userRepo, walletRepo)
+	handler := &transport.Handler{
+		Reg:      regService,
+		Transfer: transferService,
+	}
 
 	router := gin.Default()
 	router.POST("/api/auth", handler.Register)
@@ -37,6 +41,7 @@ func New(db *sql.DB) *Server {
 		protected.GET("/me", func(c *gin.Context) {
 			c.JSON(200, gin.H{"message": "hello, authenticated user"})
 		})
+		protected.POST("/sendCoin", handler.SendCoin)
 	}
 
 	return &Server{

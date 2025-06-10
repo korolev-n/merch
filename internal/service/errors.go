@@ -8,4 +8,6 @@ var (
 	ErrUserNotFound      = errors.New("user not found")
 	ErrTokenGeneration   = errors.New("could not generate token")
 	ErrInvalidToken      = errors.New("invalid JWT token")
+	ErrInsufficientBalance = errors.New("insufficient balance")
+	ErrNegativeBalance = errors.New("amount must be greater than zero")
 )

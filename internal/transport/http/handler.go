@@ -12,7 +12,8 @@ import (
 )
 
 type Handler struct {
-	Reg service.Registration
+	Reg      service.Registration
+	Transfer service.Transfer
 }
 
 type RegisterRequest struct {
@@ -33,7 +34,7 @@ func (h *Handler) Register(c *gin.Context) {
 	token, err := h.Reg.RegisterUser(ctx, req.Username, req.Password)
 	if err != nil {
 		logger.Log.Warn("Registration failed", "username", req.Username, "error", err)
-		
+
 		switch err {
 		case service.ErrIncorrectPassword:
 			helper.JSONError(c, http.StatusUnauthorized, "incorrect password")
@@ -48,4 +49,32 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	c.JSON(200, response.AuthResponse{Token: token})
+}
+
+func (h *Handler) SendCoin(c *gin.Context) {
+	var req request.SendCoinRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		helper.JSONError(c, http.StatusBadRequest, "invalid input")
+		return
+	}
+
+	fromUserIDVal, exists := c.Get("user_id")
+	if !exists {
+		helper.JSONError(c, http.StatusUnauthorized, "missing user id")
+		return
+	}
+	fromUserID := fromUserIDVal.(int)
+
+	err := h.Transfer.SendCoins(c.Request.Context(), fromUserID, req.ToUser, req.Amount)
+	if err != nil {
+		switch err {
+		case service.ErrUserNotFound:
+			helper.JSONError(c, http.StatusNotFound, "recipient not found")
+		default:
+			helper.JSONError(c, http.StatusBadRequest, err.Error())
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
