@@ -9,8 +9,8 @@ export const options = {
 
 const users = new SharedArray('users', () => {
   return Array.from({ length: 100 }, (_, i) => ({
-    username: `user${i}@loadtest.io`, 
-    password: 'SuperSecure123!', 
+    username: `user_${i}`, 
+    password: 'Password123', 
   }));
 });
 

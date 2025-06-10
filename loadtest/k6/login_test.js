@@ -22,8 +22,8 @@ export const options = {
 // Используем SharedArray для хранения учетных данных пользователей (с расчетом на 100к)
 const users = new SharedArray('users', () => {
   return Array.from({ length: 100 }, (_, i) => ({
-    username: `user${i}@loadtest.io`,
-    password: 'SuperSecure123!',
+    username: `user_${i}`,
+    password: 'Password123',
   }));
 });
 
