@@ -29,10 +29,13 @@ func New(db *sql.DB) *Server {
 	transferService := service.NewTransferService(userRepo, walletRepo)
 	shopRepo := repository.NewShopRepository(db)
 	shopService := service.NewShopService(shopRepo)
+	infoRepo := repository.NewInfoRepository(db)
+	infoService := service.NewInfoService(infoRepo)
 	handler := &transport.Handler{
 		Reg:      regService,
 		Transfer: transferService,
 		Shop:     shopService,
+		Info:     infoService,
 	}
 
 	router := gin.Default()
