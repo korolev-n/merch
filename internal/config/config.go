@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/korolev-n/merch-auth/internal/logger"
+	"github.com/korolev-n/merch/internal/logger"
 )
 
 type Config struct {

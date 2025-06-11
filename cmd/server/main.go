@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"os"
 
-	"github.com/korolev-n/merch-auth/internal/config"
-	"github.com/korolev-n/merch-auth/internal/logger"
-	"github.com/korolev-n/merch-auth/internal/server"
+	"github.com/korolev-n/merch/internal/config"
+	"github.com/korolev-n/merch/internal/logger"
+	"github.com/korolev-n/merch/internal/server"
 	_ "github.com/lib/pq"
 )
 

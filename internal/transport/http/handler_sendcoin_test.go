@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/korolev-n/merch-auth/internal/service"
-	myhttp "github.com/korolev-n/merch-auth/internal/transport/http"
+	"github.com/korolev-n/merch/internal/service"
+	myhttp "github.com/korolev-n/merch/internal/transport/http"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/korolev-n/merch-auth/internal/db"
+	"github.com/korolev-n/merch/internal/db"
 )
 
 func main() {

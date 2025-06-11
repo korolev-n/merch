@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/korolev-n/merch-auth/internal/domain"
+	"github.com/korolev-n/merch/internal/domain"
 )
 
 type InfoRepository interface {

@@ -1,4 +1,4 @@
-module github.com/korolev-n/merch-auth
+module github.com/korolev-n/merch
 
 go 1.24.3
 

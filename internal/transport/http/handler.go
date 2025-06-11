@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/korolev-n/merch-auth/internal/logger"
-	"github.com/korolev-n/merch-auth/internal/service"
-	"github.com/korolev-n/merch-auth/internal/transport/http/helper"
-	"github.com/korolev-n/merch-auth/internal/transport/http/request"
-	"github.com/korolev-n/merch-auth/internal/transport/http/response"
+	"github.com/korolev-n/merch/internal/logger"
+	"github.com/korolev-n/merch/internal/service"
+	"github.com/korolev-n/merch/internal/transport/http/helper"
+	"github.com/korolev-n/merch/internal/transport/http/request"
+	"github.com/korolev-n/merch/internal/transport/http/response"
 )
 
 type Handler struct {

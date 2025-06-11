@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/korolev-n/merch-auth/internal/service"
+	"github.com/korolev-n/merch/internal/service"
 )
 
 func AuthMiddleware(jwtService *service.JWTService) gin.HandlerFunc {

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/korolev-n/merch-auth/internal/domain"
+	"github.com/korolev-n/merch/internal/domain"
 )
 
 type WalletRepository interface {

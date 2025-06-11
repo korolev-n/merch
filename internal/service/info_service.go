@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/korolev-n/merch-auth/internal/domain"
-	"github.com/korolev-n/merch-auth/internal/repository"
+	"github.com/korolev-n/merch/internal/domain"
+	"github.com/korolev-n/merch/internal/repository"
 )
 
 type Info interface {

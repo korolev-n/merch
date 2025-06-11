@@ -5,11 +5,11 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/korolev-n/merch-auth/internal/logger"
-	"github.com/korolev-n/merch-auth/internal/repository"
-	"github.com/korolev-n/merch-auth/internal/service"
-	transport "github.com/korolev-n/merch-auth/internal/transport/http"
-	"github.com/korolev-n/merch-auth/internal/transport/http/middleware"
+	"github.com/korolev-n/merch/internal/logger"
+	"github.com/korolev-n/merch/internal/repository"
+	"github.com/korolev-n/merch/internal/service"
+	transport "github.com/korolev-n/merch/internal/transport/http"
+	"github.com/korolev-n/merch/internal/transport/http/middleware"
 )
 
 type Server struct {
