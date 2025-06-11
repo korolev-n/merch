@@ -15,6 +15,7 @@ type Handler struct {
 	Reg      service.Registration
 	Transfer service.Transfer
 	Shop     service.Shop
+	Info     service.Info
 }
 
 type RegisterRequest struct {
@@ -49,7 +50,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, response.AuthResponse{Token: token})
+	c.JSON(http.StatusOK, response.AuthResponse{Token: token})
 }
 
 func (h *Handler) SendCoin(c *gin.Context) {
@@ -102,4 +103,56 @@ func (h *Handler) BuyItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func (h *Handler) GetInfo(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		helper.JSONError(c, http.StatusUnauthorized, "missing user id")
+		return
+	}
+
+	info, err := h.Info.GetUserInfo(c.Request.Context(), userID.(int))
+	if err != nil {
+		helper.JSONError(c, http.StatusInternalServerError, "failed to get info")
+		return
+	}
+
+	resp := response.InfoResponse{
+		Coins: info.Coins,
+		Inventory: func() []response.InventoryItem {
+			items := make([]response.InventoryItem, len(info.Inventory))
+			for i, item := range info.Inventory {
+				items[i] = response.InventoryItem{
+					Type:     item.Type,
+					Quantity: item.Quantity,
+				}
+			}
+			return items
+		}(),
+		CoinHistory: response.CoinHistory{
+			Received: func() []response.CoinReceived {
+				received := make([]response.CoinReceived, len(info.CoinHistory.Received))
+				for i, r := range info.CoinHistory.Received {
+					received[i] = response.CoinReceived{
+						FromUser: r.FromUser,
+						Amount:   r.Amount,
+					}
+				}
+				return received
+			}(),
+			Sent: func() []response.CoinSent {
+				sent := make([]response.CoinSent, len(info.CoinHistory.Sent))
+				for i, s := range info.CoinHistory.Sent {
+					sent[i] = response.CoinSent{
+						ToUser: s.ToUser,
+						Amount: s.Amount,
+					}
+				}
+				return sent
+			}(),
+		},
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
