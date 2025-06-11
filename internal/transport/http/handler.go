@@ -14,6 +14,7 @@ import (
 type Handler struct {
 	Reg      service.Registration
 	Transfer service.Transfer
+	Shop     service.Shop
 }
 
 type RegisterRequest struct {
@@ -72,6 +73,30 @@ func (h *Handler) SendCoin(c *gin.Context) {
 			helper.JSONError(c, http.StatusNotFound, "recipient not found")
 		default:
 			helper.JSONError(c, http.StatusBadRequest, err.Error())
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func (h *Handler) BuyItem(c *gin.Context) {
+	itemType := c.Param("item")
+	userID, exists := c.Get("user_id")
+	if !exists {
+		helper.JSONError(c, http.StatusUnauthorized, "missing user id")
+		return
+	}
+
+	err := h.Shop.BuyItem(c.Request.Context(), userID.(int), itemType)
+	if err != nil {
+		switch err {
+		case service.ErrItemNotFound:
+			helper.JSONError(c, http.StatusNotFound, "item not found")
+		case service.ErrInsufficientBalance:
+			helper.JSONError(c, http.StatusBadRequest, "not enough coins")
+		default:
+			helper.JSONError(c, http.StatusInternalServerError, "purchase failed")
 		}
 		return
 	}
