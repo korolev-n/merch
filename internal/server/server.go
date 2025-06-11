@@ -27,9 +27,12 @@ func New(db *sql.DB) *Server {
 	jwtService := service.NewJWTService()
 	regService := service.NewRegistrationService(userRepo, walletRepo, jwtService)
 	transferService := service.NewTransferService(userRepo, walletRepo)
+	shopRepo := repository.NewShopRepository(db)
+	shopService := service.NewShopService(shopRepo)
 	handler := &transport.Handler{
 		Reg:      regService,
 		Transfer: transferService,
+		Shop:     shopService,
 	}
 
 	router := gin.Default()
@@ -42,6 +45,7 @@ func New(db *sql.DB) *Server {
 			c.JSON(200, gin.H{"message": "hello, authenticated user"})
 		})
 		protected.POST("/sendCoin", handler.SendCoin)
+		protected.GET("/buy/:item", handler.BuyItem)
 	}
 
 	return &Server{
