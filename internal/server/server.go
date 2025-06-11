@@ -44,11 +44,9 @@ func New(db *sql.DB) *Server {
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware(jwtService))
 	{
-		protected.GET("/me", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "hello, authenticated user"})
-		})
 		protected.POST("/sendCoin", handler.SendCoin)
 		protected.GET("/buy/:item", handler.BuyItem)
+		protected.GET("/info", handler.GetInfo)
 	}
 
 	return &Server{
