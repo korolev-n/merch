@@ -9,13 +9,6 @@ import (
 	"testing"
 )
 
-const baseURL = "http://localhost:8080"
-
-// AuthResponse – структура для получения токена
-type AuthResponse struct {
-	Token string `json:"token"`
-}
-
 func TestBuyItem(t *testing.T) {
 	username := "e2euser"
 	password := "testpass"
@@ -67,7 +60,7 @@ func TestBuyItem(t *testing.T) {
 	}
 
 	// 3. Проверка наличия товара в инвентаре
-	req, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/me", baseURL), nil)
+	req, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/info", baseURL), nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp, err = client.Do(req)
 	if err != nil {
@@ -76,6 +69,22 @@ func TestBuyItem(t *testing.T) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Failed to fetch /me: %d", resp.StatusCode)
+		t.Fatalf("Failed to fetch /api/info: %d", resp.StatusCode)
+	}
+
+	var info InfoResponse
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		t.Fatalf("Failed to parse /api/info response: %v", err)
+	}
+
+	found := false
+	for _, item := range info.Inventory {
+		if item.Type == "cup" && item.Quantity >= 1 {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Expected item 'cup' in inventory but not found")
 	}
 }
