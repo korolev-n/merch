@@ -1,3 +1,4 @@
+// Path: ./internal/repository/mocks/user_repository_mock.go
 package mocks
 
 import (
@@ -12,7 +13,7 @@ type UserRepositoryMock struct {
 	GetByUsernameFunc func(ctx context.Context, username string) (*domain.User, error)
 }
 
-func NewMockUserRepository() repository.UserRepository {
+func NewMockUserRepository() *UserRepositoryMock {
 	return &UserRepositoryMock{}
 }
 
@@ -29,3 +30,5 @@ func (m *UserRepositoryMock) GetByUsername(ctx context.Context, username string)
 	}
 	return nil, nil
 }
+
+var _ repository.UserRepository = (*UserRepositoryMock)(nil)

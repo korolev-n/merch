@@ -1,3 +1,4 @@
+// Path: ./internal/repository/mocks/wallet_repository_mock.go
 package mocks
 
 import (
@@ -12,7 +13,7 @@ type WalletRepositoryMock struct {
 	TransferCoinsTxFunc func(ctx context.Context, fromUserID, toUserID, amount int) error
 }
 
-func NewMockWalletRepository() repository.WalletRepository {
+func NewMockWalletRepository() *WalletRepositoryMock {
 	return &WalletRepositoryMock{}
 }
 
@@ -29,3 +30,5 @@ func (m *WalletRepositoryMock) TransferCoinsTx(ctx context.Context, fromUserID, 
 	}
 	return nil
 }
+
+var _ repository.WalletRepository = (*WalletRepositoryMock)(nil)
