@@ -3,3 +3,4 @@ output.txt
 login.targets
 results.bin
 coverage.out
+coverage.html
