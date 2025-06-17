@@ -1,8 +1,7 @@
-APP_NAME=merch
-PKG=./...
-COVERFILE=coverage.out
+.PHONY: test test-unit test-e2e run cover up down clean migrate
 
-.PHONY: test test-unit test-integration run cover up down
+migrate:
+	migrate -path=./migrations -database=$(MERCH_DB_DSN) up
 
 test:
 	go test -v -race -cover -coverprofile=$(COVERFILE) $(PKG)
@@ -10,7 +9,7 @@ test:
 test-unit:
 	go test -v -race -cover -coverprofile=$(COVERFILE) -tags='!e2e' $(PKG)
 
-test-integration:
+test-e2e:
 	go test -v -race -cover -coverprofile=$(COVERFILE) -tags=e2e $(PKG)
 
 run:
@@ -21,7 +20,9 @@ cover:
 
 up:
 	docker compose up -d --build
+
 down:
 	docker compose down
+
 clean:
 	docker compose down -v
