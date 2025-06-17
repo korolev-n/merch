@@ -10,12 +10,14 @@ import (
 )
 
 func SeedInventoryData() error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println(".env not loaded:", err)
+	_ = godotenv.Load()
+
+	dsn := os.Getenv("MERCH_DB_DSN")
+	if dsn == "" {
+		log.Fatal("MERCH_DB_DSN is not set")
 	}
 
-	db, err := sql.Open("postgres", os.Getenv("MERCH_DB_DSN"))
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
