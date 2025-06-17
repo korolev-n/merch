@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-default_secret}
+      MERCH_DB_DSN: ${MERCH_DB_DSN:-postgres://postgres:postgres@db:5432/merch?sslmode=disable}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: merch
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    #restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d merch"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      migrate -path=/migrations -database "$$MERCH_DB_DSN" up
+    environment:
+      MERCH_DB_DSN: ${MERCH_DB_DSN:-postgres://postgres:postgres@db:5432/merch?sslmode=disable}
+    restart: on-failure
+
+  seed:
+    build: .
+      #context: .
+      #dockerfile: Dockerfile
+    command: ["./seed"]
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-default_secret}
+      MERCH_DB_DSN: ${MERCH_DB_DSN:-postgres://postgres:postgres@db:5432/merch?sslmode=disable}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    env_file: .env
+    #restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d merch"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
