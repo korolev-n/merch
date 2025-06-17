@@ -19,3 +19,10 @@ run:
 	go run ./cmd/server
 cover:
 	go tool cover -func=$(COVERFILE)
+## Запуск приложения и seed скрипта
+up:
+	docker compose up --build -d
+	docker-compose up migrate
+	docker compose run --rm seed
+down:
+	docker compose down -v
